@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <glew.h>
 #include <glfw3.h>
+#include <stdlib.h>
+#include <math.h>
+
 //Dimensiones de la ventana
 const int WIDTH = 800, HEIGHT = 600;
 
@@ -54,14 +57,34 @@ int main()
 	printf("Marca: %s \n", glGetString(GL_VENDOR));
 	printf("Renderer: %s \n", glGetString(GL_RENDERER));
 	printf("Shaders: %s \n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	
+	float red = 1, green = 0, blue = 0;
+	double entera;
+	int flag = 0, time, seconds = 3;
+
+	int FLOAT_MIN = 0;
+	int FLOAT_MAX = 1;
+	
 	//Loop mientras no se cierra la ventana
 	while (!glfwWindowShouldClose(mainWindow))
 	{
+		modf(glfwGetTime(), &entera);
+		time = (int)entera;
+
+		if(time%seconds == 0 && flag == 1) {
+			flag = 0;
+			red = FLOAT_MIN + (float)(rand()) / ((float)(RAND_MAX / (FLOAT_MAX - FLOAT_MIN)));
+			green = FLOAT_MIN + (float)(rand()) / ((float)(RAND_MAX / (FLOAT_MAX - FLOAT_MIN)));
+			blue = FLOAT_MIN + (float)(rand()) / ((float)(RAND_MAX / (FLOAT_MAX - FLOAT_MIN)));
+		} else if(time % seconds != 0) {
+			flag = 1;
+		}
+
 		//Recibir eventos del usuario
 		glfwPollEvents();
 
 		//Limpiar la ventana
-		glClearColor(0.0f,1.0f,0.0f,1.0f);
+		glClearColor(red,blue,green,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glfwSwapBuffers(mainWindow);
