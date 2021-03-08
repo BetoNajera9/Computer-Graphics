@@ -14,7 +14,7 @@ public:
 	void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
 	std::string ReadFile(const char*  fileLocation);
 	GLuint getProjectLocation();
-	GLuint getModelLoaction();
+	GLuint getModelLocation();
 
 	void useShader();
 	void ClearShader();

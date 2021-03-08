@@ -86,7 +86,7 @@ GLuint Shader::getProjectLocation()
 {
 	return uniformProjection;
 }
-GLuint Shader::getModelLoaction()
+GLuint Shader::getModelLocation()
 {	
 	return uniformModel;
 }
