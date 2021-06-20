@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.1401
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Computer-Graphics", "Computer-Graphics\Computer-Graphics.vcxproj", "{A9F48246-2052-406A-85F6-9798EE1422CB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "texturizado", "texturizado\texturizado\texturizado.vcxproj", "{81F4D3B3-C147-4DAD-8120-D6D6B0424780}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,11 +23,19 @@ Global
 		{A9F48246-2052-406A-85F6-9798EE1422CB}.Release|x64.Build.0 = Release|x64
 		{A9F48246-2052-406A-85F6-9798EE1422CB}.Release|x86.ActiveCfg = Release|Win32
 		{A9F48246-2052-406A-85F6-9798EE1422CB}.Release|x86.Build.0 = Release|Win32
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Debug|x64.ActiveCfg = Debug|x64
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Debug|x64.Build.0 = Debug|x64
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Debug|x86.ActiveCfg = Debug|Win32
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Debug|x86.Build.0 = Debug|Win32
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Release|x64.ActiveCfg = Release|x64
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Release|x64.Build.0 = Release|x64
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Release|x86.ActiveCfg = Release|Win32
+		{81F4D3B3-C147-4DAD-8120-D6D6B0424780}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {06AB595D-5A61-41AD-B19D-6853E229C606}
+		SolutionGuid = {E6E31C2F-BF22-42DD-BB88-41193D5C54C6}
 	EndGlobalSection
 EndGlobal
