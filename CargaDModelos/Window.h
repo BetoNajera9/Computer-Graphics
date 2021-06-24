@@ -13,7 +13,13 @@ public:
 	GLfloat getBufferHeight() { return bufferHeight; }
 	GLfloat getXChange();
 	GLfloat getYChange();
+	//Helicoptero
 	GLfloat getmuevex() { return muevex; }
+	GLfloat getmuevez() { return muevez; }
+	//Carro
+	GLfloat getcarx() { return carx; }
+	GLfloat getcary() { return cary; }
+
 	bool getShouldClose() {
 		return  glfwWindowShouldClose(mainWindow);}
 	bool* getsKeys() { return keys; }
@@ -30,7 +36,14 @@ private:
 	GLfloat lastY;
 	GLfloat xChange;
 	GLfloat yChange;
+
+	//Helicoptero
 	GLfloat muevex;
+	GLfloat muevez;
+	//Carro
+	GLfloat cary;
+	GLfloat carx;
+
 	bool mouseFirstMoved;
 	static void ManejaTeclado(GLFWwindow* window, int key, int code, int action, int mode);
 	static void ManejaMouse(GLFWwindow* window, double xPos, double yPos);

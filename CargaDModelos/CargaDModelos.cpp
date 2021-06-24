@@ -1,6 +1,7 @@
-/*
+ï»¿/*
 Semestre 2021-2
-Práctica 6: Carga de Modelos
+Prï¿½ctica : Iluminaciï¿½n
+Cambios en el shader, en lugar de enviar la textura en el shader de fragmentos, enviaremos el finalcolor
 */
 //para cargar imagen
 #define STB_IMAGE_IMPLEMENTATION
@@ -29,6 +30,13 @@ Práctica 6: Carga de Modelos
 #include"Model.h"
 #include "Skybox.h"
 
+
+//para iluminaciï¿½n
+#include "CommonValues.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
+#include "Material.h"
+
 const float toRadians = 3.14159265f / 180.0f;
 
 Window mainWindow;
@@ -50,9 +58,19 @@ Model Llanta_M;
 Model Camino_M;
 Model Blackhawk_M;
 Model Dado_M;
-Model Dado8_M;
 
 Skybox skybox;
+
+//materiales
+Material Material_brillante;
+Material Material_opaco;
+
+//luz direccional
+DirectionalLight mainLight;
+//para declarar varias luces de tipo pointlight
+PointLight pointLights[MAX_POINT_LIGHTS];
+SpotLight spotLights[MAX_SPOT_LIGHTS];
+
 
 //Sphere cabeza = Sphere(0.5, 20, 20);
 GLfloat deltaTime = 0.0f;
@@ -67,7 +85,7 @@ static const char* vShader = "shaders/shader_light.vert";
 static const char* fShader = "shaders/shader_light.frag";
 
 
-//cálculo del promedio de las normales para sombreado de Phong
+//cï¿½lculo del promedio de las normales para sombreado de Phong
 void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount,
 	unsigned int vLength, unsigned int normalOffset)
 {
@@ -191,8 +209,8 @@ void CrearCubo()
 		20, 21, 22,
 		22, 23, 20,
 	};
-	//Ejercicio 1: reemplazar con sus dados de 6 caras texturizados, agregar normales
-// average normals
+
+
 	GLfloat cubo_vertices[] = {
 		// front
 		//x		y		z		S		T			NX		NY		NZ
@@ -277,7 +295,7 @@ int main()
 	Tagave.LoadTextureA();
 
 	Kitt_M = Model();
-	Kitt_M.LoadModel("Models/kitt.obj");
+	Kitt_M.LoadModel("Models/kitt.fbx");
 	Llanta_M = Model();
 	Llanta_M.LoadModel("Models/k_rueda.3ds");
 	Blackhawk_M = Model();
@@ -287,9 +305,6 @@ int main()
 
 	Dado_M = Model();
 	Dado_M.LoadModel("Models/dadoanimales.obj");
-
-	Dado8_M = Model();
-	Dado8_M.LoadModel("Models/Dado8.obj");
 
 	std::vector<std::string> skyboxFaces;
 	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_rt.tga");
@@ -301,9 +316,63 @@ int main()
 
 	skybox = Skybox(skyboxFaces);
 
+	Material_brillante = Material(4.0f, 256);
+	Material_opaco = Material(0.3f, 4);
+
+	//posiciï¿½n inicial del helicï¿½ptero
+	glm::vec3 posblackhawk = glm::vec3(-20.0f, 6.0f, -1.0);
+
+	//luz direccional, sï¿½lo 1 y siempre debe de existir
+	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
+		0.3f, 0.3f,
+		0.0f, 0.0f, -1.0f);
+	//contador de luces puntuales
+	unsigned int pointLightCount = 0;
+	//Declaraciï¿½n de primer luz puntual
+	pointLights[0] = PointLight(1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f,
+		2.0f, 1.5f, 1.5f,
+		0.3f, 0.2f, 0.1f);
+	pointLightCount++;
+
+	unsigned int spotLightCount = 0;
+	//linterna
+
+	//luz fija
+	spotLights[0] = SpotLight(0.0f, 1.0f, 0.0f,
+		1.0f, 2.0f,
+		5.0f, 10.0f, 0.0f,
+		0.0f, -5.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		25.0f);
+	spotLightCount++;
+
+	//luz de helicï¿½ptero
+
+	//luz de faro
+	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
+		1.0f, 2.0f,
+		5.0f, 0.0f, -1.0f,
+		-1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		5.0f);
+	spotLightCount++;
+
+	spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
+		1.0f, 2.0f,
+		-10.0f, 0.0f, 3.2f,
+		-1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		5.0f);
+	spotLightCount++;
+
+
+
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 300.0f);
+
+
 	////Loop mientras no se cierra la ventana
 	while (!mainWindow.getShouldClose())
 	{
@@ -327,9 +396,30 @@ int main()
 		uniformView = shaderList[0].GetViewLocation();
 		uniformEyePosition = shaderList[0].GetEyePositionLocation();
 
+		//informaciï¿½n en el shader de intensidad especular y brillo
+		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
+		uniformShininess = shaderList[0].GetShininessLocation();
+
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
+
+		//luz ligada a la cï¿½mara de tipo flash 
+		glm::vec3 lowerLight = camera.getCameraPosition();
+		lowerLight.y -= 0.3f;
+		//spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
+		//Helicopetro
+		spotLights[0].SetPos(glm::vec3(-20.0f + mainWindow.getmuevex(), 1.0f+mainWindow.getmuevez(), -1.0f));
+
+		// Faros
+		spotLights[1].SetPos(glm::vec3(3.0f+mainWindow.getcarx(), 1.0f, -1.0f+mainWindow.getcary()));
+		spotLights[2].SetPos(glm::vec3(3.0f + mainWindow.getcarx(), 1.0f, 2.0f + mainWindow.getcary()));
+
+		//informaciï¿½n al shader de fuentes de iluminaciï¿½n
+		shaderList[0].SetDirectionalLight(&mainLight);
+		shaderList[0].SetPointLights(pointLights, pointLightCount);
+		shaderList[0].SetSpotLights(spotLights, spotLightCount);
+
 
 		glm::mat4 model(1.0);
 
@@ -339,38 +429,35 @@ int main()
 		model = glm::scale(model, glm::vec3(30.0f, 1.0f, 30.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		pisoTexture.UseTexture();
+		//agregar material al plano de piso
+		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[2]->RenderMesh();
 
-
+		//agregar su coche y ponerle material
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 0.5f, -1.5f));
-		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+		model = glm::translate(model, glm::vec3(-2.0f+mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary()));
+		model = glm::scale(model, glm::vec3(1.75f, 1.75f, 1.75f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Kitt_M.RenderModel();
 
+		//agregar incremento en X con teclado
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 3.0f, -1.0));
-		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+		model = glm::translate(model, glm::vec3(-20.0f+mainWindow.getmuevex(), 6.0f + mainWindow.getmuevez(), -1.0));
+		model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//agregar material al helicï¿½ptero
+		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		Blackhawk_M.RenderModel();
+		//ï¿½Cï¿½mo ligas la luz al helicï¿½ptero?
+
 
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, -1.53f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Camino_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 5.0f, 0.0f));
-		model = glm::rotate(model, 180 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Dado_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-2.0f, 5.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Dado8_M.RenderModel();
 
 		glUseProgram(0);
 
