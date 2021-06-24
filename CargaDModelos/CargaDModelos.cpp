@@ -295,7 +295,7 @@ int main()
 	Tagave.LoadTextureA();
 
 	Kitt_M = Model();
-	Kitt_M.LoadModel("Models/kitt.obj");
+	Kitt_M.LoadModel("Models/kitt.fbx");
 	Llanta_M = Model();
 	Llanta_M.LoadModel("Models/k_rueda.3ds");
 	Blackhawk_M = Model();
@@ -339,12 +339,12 @@ int main()
 	//linterna
 
 	//luz fija
-	spotLights[0] = SpotLight(0.0f, 0.0f, 1.0f,
+	spotLights[0] = SpotLight(0.0f, 1.0f, 0.0f,
 		1.0f, 2.0f,
 		5.0f, 10.0f, 0.0f,
 		0.0f, -5.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		15.0f);
+		25.0f);
 	spotLightCount++;
 
 	//luz de helic�ptero
@@ -352,18 +352,18 @@ int main()
 	//luz de faro
 	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
-		3.0f, 0.5f, -1.0f,
+		5.0f, 0.0f, -1.0f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		8.0f);
+		5.0f);
 	spotLightCount++;
 
 	spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
-		3.0f, 0.5f, 3.2f,
+		-10.0f, 0.0f, 3.2f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		8.0f);
+		5.0f);
 	spotLightCount++;
 
 
@@ -408,6 +408,12 @@ int main()
 		glm::vec3 lowerLight = camera.getCameraPosition();
 		lowerLight.y -= 0.3f;
 		//spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
+		//Helicopetro
+		spotLights[0].SetPos(glm::vec3(-20.0f + mainWindow.getmuevex(), 1.0f+mainWindow.getmuevez(), -1.0f));
+
+		// Faros
+		spotLights[1].SetPos(glm::vec3(3.0f+mainWindow.getcarx(), 1.0f, -1.0f+mainWindow.getcary()));
+		spotLights[2].SetPos(glm::vec3(3.0f + mainWindow.getcarx(), 1.0f, 2.0f + mainWindow.getcary()));
 
 		//informaci�n al shader de fuentes de iluminaci�n
 		shaderList[0].SetDirectionalLight(&mainLight);
@@ -429,15 +435,15 @@ int main()
 
 		//agregar su coche y ponerle material
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 0.5f, -1.5f));
-		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+		model = glm::translate(model, glm::vec3(-2.0f+mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary()));
+		model = glm::scale(model, glm::vec3(1.75f, 1.75f, 1.75f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Kitt_M.RenderModel();
 
 		//agregar incremento en X con teclado
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-20.0f, 6.0f, -1.0));
+		model = glm::translate(model, glm::vec3(-20.0f+mainWindow.getmuevex(), 6.0f + mainWindow.getmuevez(), -1.0));
 		model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -452,38 +458,6 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, -1.53f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Camino_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(0.0f, 5.0f, 0.0f));
-		model = glm::rotate(model, 180 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Dado_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(5.0f, 0.0f, -2.25f));
-		model = glm::scale(model, glm::vec3(0.015f, 0.015f, 0.015f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Llanta_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(5.0f, 0.0f, 4.5f));
-		model = glm::scale(model, glm::vec3(0.015f, 0.015f, 0.015f));
-		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Llanta_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(13.5f, 0.0f, 4.5f));
-		model = glm::scale(model, glm::vec3(0.015f, 0.015f, 0.015f));
-		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Llanta_M.RenderModel();
-
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(13.5f, 0.0f, -2.25f));
-		model = glm::scale(model, glm::vec3(0.015f, 0.015f, 0.015f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		Llanta_M.RenderModel();
 
 		glUseProgram(0);
 

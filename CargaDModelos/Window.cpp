@@ -14,6 +14,9 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	width = windowWidth;
 	height = windowHeight;
 	muevex = 2.0f;
+	muevez = 2.0f;
+	carx = 2.0f;
+	cary = 2.0f;
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -104,6 +107,7 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	{
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
+	// Helicoptero
 	if (key == GLFW_KEY_Y)
 	{
 		theWindow-> muevex += 1.0;
@@ -111,6 +115,34 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	if (key == GLFW_KEY_U)
 	{
 		theWindow-> muevex -= 1.0;
+	}
+
+	if (key == GLFW_KEY_I)
+	{
+		theWindow->muevez += 1.0;
+	}
+	if (key == GLFW_KEY_K)
+	{
+		theWindow->muevez -= 1.0;
+	}
+
+	// Carro
+	if (key == GLFW_KEY_UP)
+	{
+		theWindow->carx -= 1.0;
+	}
+	if (key == GLFW_KEY_DOWN)
+	{
+		theWindow->carx += 1.0;
+	}
+
+	if (key == GLFW_KEY_RIGHT)
+	{
+		theWindow->cary -= 1.0;
+	}
+	if (key == GLFW_KEY_LEFT)
+	{
+		theWindow->cary += 1.0;
 	}
 
 
