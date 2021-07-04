@@ -1,6 +1,6 @@
 ﻿/*
 Semestre 2021-2
-Pr�ctica : Iluminaci�n
+Práctica : Iluminación
 Cambios en el shader, en lugar de enviar la textura en el shader de fragmentos, enviaremos el finalcolor
 */
 //para cargar imagen
@@ -31,13 +31,27 @@ Cambios en el shader, en lugar de enviar la textura en el shader de fragmentos, 
 #include "Skybox.h"
 
 
-//para iluminaci�n
+//para iluminación
 #include "CommonValues.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
 #include "Material.h"
 
 const float toRadians = 3.14159265f / 180.0f;
+
+//desplazamiento Helicoptero
+float offset = 0.0f;
+float posYavion = 0.0f;
+float posXavion = 0.0f;
+float rotAvion = 0.0f;
+bool dir = true;
+bool rot = true;
+
+//desplazamiento Carro
+float posXcarro = 0.0f;
+float dirFaro = -1.0f;
+bool dirC = true;
+
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -85,7 +99,7 @@ static const char* vShader = "shaders/shader_light.vert";
 static const char* fShader = "shaders/shader_light.frag";
 
 
-//c�lculo del promedio de las normales para sombreado de Phong
+//cálculo del promedio de las normales para sombreado de Phong
 void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount,
 	unsigned int vLength, unsigned int normalOffset)
 {
@@ -295,7 +309,7 @@ int main()
 	Tagave.LoadTextureA();
 
 	Kitt_M = Model();
-	Kitt_M.LoadModel("Models/kitt.fbx");
+	Kitt_M.LoadModel("Models/Kitt.fbx");
 	Llanta_M = Model();
 	Llanta_M.LoadModel("Models/k_rueda.3ds");
 	Blackhawk_M = Model();
@@ -319,16 +333,22 @@ int main()
 	Material_brillante = Material(4.0f, 256);
 	Material_opaco = Material(0.3f, 4);
 
-	//posici�n inicial del helic�ptero
-	glm::vec3 posblackhawk = glm::vec3(-20.0f, 6.0f, -1.0);
+	//posición inicial del helicóptero
+	glm::vec3 posblackhawk = glm::vec3(-20.0f, 6.0f, -10.0);
+	glm::vec3 desplazamiento = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	//luz direccional, s�lo 1 y siempre debe de existir
+	//posicion del carro
+	glm::vec3 posCarro = glm::vec3(-20.0f, -2.0f, 0.5f);
+	//glm::vec3(-2.0f + mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary())
+	glm::vec3 desCarro = glm::vec3(1.0f, 0.0f, 0.0f);
+
+	//luz direccional, sólo 1 y siempre debe de existir
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,
 		0.3f, 0.3f,
 		0.0f, 0.0f, -1.0f);
 	//contador de luces puntuales
 	unsigned int pointLightCount = 0;
-	//Declaraci�n de primer luz puntual
+	//Declaración de primer luz puntual
 	pointLights[0] = PointLight(1.0f, 0.0f, 0.0f,
 		0.0f, 1.0f,
 		2.0f, 1.5f, 1.5f,
@@ -336,35 +356,33 @@ int main()
 	pointLightCount++;
 
 	unsigned int spotLightCount = 0;
-	//linterna
-
-	//luz fija
-	spotLights[0] = SpotLight(0.0f, 1.0f, 0.0f,
+	//helicoptero
+	spotLights[0] = SpotLight(0.0f, 0.0f, 1.0f,
 		1.0f, 2.0f,
 		5.0f, 10.0f, 0.0f,
 		0.0f, -5.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		25.0f);
+		15.0f);
 	spotLightCount++;
-
-	//luz de helic�ptero
 
 	//luz de faro
 	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
-		5.0f, 0.0f, -1.0f,
+		3.0f, 0.5f, -1.0f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		5.0f);
+		8.0f);
 	spotLightCount++;
 
 	spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
-		-10.0f, 0.0f, 3.2f,
+		3.0f, 0.5f, 3.2f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		5.0f);
+		8.0f);
 	spotLightCount++;
+
+
 
 
 
@@ -396,7 +414,7 @@ int main()
 		uniformView = shaderList[0].GetViewLocation();
 		uniformEyePosition = shaderList[0].GetEyePositionLocation();
 
-		//informaci�n en el shader de intensidad especular y brillo
+		//información en el shader de intensidad especular y brillo
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 		uniformShininess = shaderList[0].GetShininessLocation();
 
@@ -404,25 +422,23 @@ int main()
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
-		//luz ligada a la c�mara de tipo flash 
+		//luz ligada a la cámara de tipo flash 
 		glm::vec3 lowerLight = camera.getCameraPosition();
 		lowerLight.y -= 0.3f;
 		//spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
-		//Helicopetro
-		spotLights[0].SetPos(glm::vec3(-20.0f + mainWindow.getmuevex(), 1.0f+mainWindow.getmuevez(), -1.0f));
 
-		// Faros
-		spotLights[1].SetPos(glm::vec3(3.0f+mainWindow.getcarx(), 1.0f, -1.0f+mainWindow.getcary()));
-		spotLights[2].SetPos(glm::vec3(3.0f + mainWindow.getcarx(), 1.0f, 2.0f + mainWindow.getcary()));
+		
 
-		//informaci�n al shader de fuentes de iluminaci�n
+		
+
+		//información al shader de fuentes de iluminación
 		shaderList[0].SetDirectionalLight(&mainLight);
 		shaderList[0].SetPointLights(pointLights, pointLightCount);
 		shaderList[0].SetSpotLights(spotLights, spotLightCount);
 
 
 		glm::mat4 model(1.0);
-
+		glm::mat4 modelaux(1.0);
 
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
@@ -433,31 +449,123 @@ int main()
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[2]->RenderMesh();
 
+		offset += 0.1f;
+
+		if (dirC == false) {
+			if (posXcarro < 20) {
+				posXcarro += 0.01;
+			}
+			else {
+				dirC = true;
+				dirFaro = -1.0f;
+			}
+		}
+		else {
+			if (posXcarro > -20) {
+				posXcarro -= 0.01;
+			}
+			else {
+				dirC = false;
+				dirFaro = 1.0f;
+			}
+		}
+
+		desCarro = glm::vec3(posXcarro, 0.0f, 0.0f);
 		//agregar su coche y ponerle material
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-2.0f+mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary()));
+		//model = glm::translate(model, glm::vec3(-2.0f + mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary()));
+		model = glm::translate(model, posCarro + desCarro);
 		model = glm::scale(model, glm::vec3(1.75f, 1.75f, 1.75f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Kitt_M.RenderModel();
 
+		// Faros
+		spotLights[1].SetFlash(glm::vec3(-25.0f + posXcarro, 1.0f, -5.0f + mainWindow.getcary()), glm::vec3(dirFaro, 0.0f, 0.0f));
+		spotLights[2].SetFlash(glm::vec3(-25.0f + posXcarro, 1.0f, -1.0f + mainWindow.getcary()), glm::vec3(dirFaro, 0.0f, 0.0f));
+
+		//Ejercicio1: Helicoptero moviendose
+		if (dir == false) {
+			if (posXavion < 20) {
+				posXavion += 0.01;
+			}
+			else {
+				if (rot == false) {
+
+					if (rotAvion > 0) {
+						rotAvion -= 0.1;
+					}
+					else {
+						rot = true;
+						dir = true;
+					}
+				}
+			}
+		}
+		else {
+			if (posXavion > -20) {
+				posXavion -= 0.01;
+			}
+			else {
+				if (rot == true) {
+					if (rotAvion < 180) {
+						rotAvion += 0.1;
+					}
+					else {
+						rot = false;
+						dir = false;
+					}
+				}
+
+			}
+		}
+
+		posYavion = sin(5 * offset*toRadians);
+
+
+		desplazamiento = glm::vec3(posXavion, posYavion, 0.0f);
 		//agregar incremento en X con teclado
 		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(-20.0f+mainWindow.getmuevex(), 6.0f + mainWindow.getmuevez(), -1.0));
+		//model = glm::translate(model, glm::vec3(-20.0f+mainWindow.getmuevex(), 6.0f, -1.0));
+		//model = glm::translate(model, glm::vec3(posblackhawk.x + mainWindow.getmuevex(), posblackhawk.y, posblackhawk.z));
+		model = glm::translate(model, posblackhawk + desplazamiento);
 		model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, (90 + rotAvion) * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		//agregar material al helic�ptero
+		//agregar material al helicóptero
 		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		Blackhawk_M.RenderModel();
-		//�C�mo ligas la luz al helic�ptero?
+		//¿Cómo ligas la luz al helicóptero?
+
+		//Helicopetro
+		spotLights[0].SetPos(posblackhawk + desplazamiento);
+
 
 
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(0.0f, -1.53f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Camino_M.RenderModel();
+
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(0.0f, 5.0f, 0.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Dado_M.RenderModel();
+
+		//Agave¿qué sucede si-lo-renderizanantes del·cocheydelapista?
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 10.0f));
+		model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//blending: transparencia - otraslucidez
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		Tagave.UseTexture();
+		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		meshList[3]->RenderMesh();
+		glDisable(GL_BLEND);
 
 		glUseProgram(0);
 
