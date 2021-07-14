@@ -43,14 +43,24 @@ const float toRadians = 3.14159265f / 180.0f;
 float offset = 0.0f;
 float posYavion = 0.0f;
 float posXavion = 0.0f;
+float posZavion = 0.0f;
 float rotAvion = 0.0f;
+float radio = 10.0f;
+float i = 0.0f;
 bool dir = true;
 bool rot = true;
 
 //desplazamiento Carro
 float posXcarro = 0.0f;
+float posYcarro = 0.0f;
+float posZcarro = 0.0f;
+float rotXcarro = 0.0f;
 float dirFaro = -1.0f;
+float vuelta = 10.0f;
+float vueltaG = 0.0f;
+float j = 0.0f;
 bool dirC = true;
+bool vueltaDir = true;
 
 
 Window mainWindow;
@@ -366,21 +376,21 @@ int main()
 	spotLightCount++;
 
 	//luz de faro
-	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
+	/*spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
 		3.0f, 0.5f, -1.0f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
 		8.0f);
-	spotLightCount++;
+	spotLightCount++;*/
 
-	spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
+	/*spotLights[2] = SpotLight(1.0f, 1.0f, 1.0f,
 		1.0f, 2.0f,
 		3.0f, 0.5f, 3.2f,
 		-1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
 		8.0f);
-	spotLightCount++;
+	spotLightCount++;*/
 
 
 
@@ -450,8 +460,8 @@ int main()
 		meshList[2]->RenderMesh();
 
 		offset += 0.1f;
-
-		if (dirC == false) {
+		//Ejercicio 2: Carro moviendose
+		/*if (dirC == false) {
 			if (posXcarro < 20) {
 				posXcarro += 0.01;
 			}
@@ -468,24 +478,120 @@ int main()
 				dirC = false;
 				dirFaro = 1.0f;
 			}
+		}*/
+
+
+		//Practica Ejercicio 2
+		if (posXcarro < -20 && posXcarro > -40 && dirC == true) {
+			if (posXcarro < -30) {
+				posYcarro -= 0.01;
+				
+				if (posYcarro < 8) {
+					if (rotXcarro > 0) {
+						rotXcarro -= 0.05;
+					}
+				} else if (rotXcarro < 45) {
+						rotXcarro += 0.5;
+				}
+				
+			}
+			else {
+				posYcarro += 0.01;
+				if (rotXcarro > -45) {
+					rotXcarro -= 0.5;
+				}
+				
+			}
 		}
 
-		desCarro = glm::vec3(posXcarro, 0.0f, 0.0f);
+		else if (posXcarro > -40 && posXcarro < -20 && dirC == false) {
+			if (posXcarro > -30) {
+				posYcarro -= 0.01;
+
+				if (posYcarro < 8) {
+					if (rotXcarro > 0) {
+						rotXcarro -= 0.05;
+					}
+				}
+				else if (rotXcarro < 45) {
+					rotXcarro += 0.5;
+				}
+			}
+			else {
+				posYcarro += 0.01;
+				if (rotXcarro > -45) {
+					rotXcarro -= 0.5;
+				}
+			}
+		}
+
+		else if (rotXcarro > 0) {
+			rotXcarro -= 0.5;
+		}
+		
+
+		//Vuelta
+		if (posXcarro <= -50 && dirC == true) {
+			j -= 0.001;
+			posXcarro = (vuelta * cos(j)) - 60;
+			posZcarro = (vuelta * sin(j));
+			if (posZcarro < 0.001 && posXcarro < -50 && posXcarro > -55) {
+				vueltaG -= 0.05;
+			}
+			else if (posZcarro < 0.0 && posXcarro < -55) {
+				vueltaG += 0.1;
+			}
+			
+			if (posZcarro > 0.001 && posXcarro < -50) {
+				dirC = false;
+			}
+		} else if (posXcarro >= 0 && dirC == false) {
+			j += 0.001;
+			posXcarro = (vuelta * cos(j)) + 10;
+			posZcarro = (vuelta * sin(j));
+
+			if (posZcarro < 0.001 && posXcarro > 0 && posXcarro < 5) {
+				vueltaG += 0.05;
+			}
+			else if (posZcarro < 0.0 && posXcarro > 5) {
+				vueltaG -= 0.1;
+			}
+			if (posZcarro > 0.0 && posXcarro < 20) {
+				
+				dirC = true;
+			}
+		} else if (dirC == true){
+			posXcarro -= 0.01;
+			if (vueltaG > 0) {
+				vueltaG -= 0.1;
+			}
+		} else if (dirC == false) {
+			posXcarro += 0.01;
+			if (vueltaG < 180) {
+				vueltaG += 0.1;
+			}
+		}
+
+		
+
+		desCarro = glm::vec3(posXcarro, posYcarro, posZcarro);
 		//agregar su coche y ponerle material
 		model = glm::mat4(1.0);
 		//model = glm::translate(model, glm::vec3(-2.0f + mainWindow.getcarx(), -2.0f, 0.5f + mainWindow.getcary()));
 		model = glm::translate(model, posCarro + desCarro);
-		model = glm::scale(model, glm::vec3(1.75f, 1.75f, 1.75f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, vueltaG * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, rotXcarro * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Kitt_M.RenderModel();
 
 		// Faros
-		spotLights[1].SetFlash(glm::vec3(-25.0f + posXcarro, 1.0f, -5.0f + mainWindow.getcary()), glm::vec3(dirFaro, 0.0f, 0.0f));
+		//spotLights[1].SetFlash(glm::vec3(-25.0f + posXcarro, 1.0f, -5.0f + mainWindow.getcary()), glm::vec3(dirFaro, 0.0f, 0.0f));
 		spotLights[2].SetFlash(glm::vec3(-25.0f + posXcarro, 1.0f, -1.0f + mainWindow.getcary()), glm::vec3(dirFaro, 0.0f, 0.0f));
 
 		//Ejercicio1: Helicoptero moviendose
-		if (dir == false) {
+		/*if (dir == false) {
 			if (posXavion < 20) {
 				posXavion += 0.01;
 			}
@@ -518,12 +624,17 @@ int main()
 				}
 
 			}
-		}
+		}*/
+
+		//Practica Ejercicio 1
+		i -= 0.001;
+		posXavion = radio * cos(i);
+		posZavion = radio * sin(i);
 
 		posYavion = sin(5 * offset*toRadians);
 
 
-		desplazamiento = glm::vec3(posXavion, posYavion, 0.0f);
+		desplazamiento = glm::vec3(posXavion, posYavion, posZavion);
 		//agregar incremento en X con teclado
 		model = glm::mat4(1.0);
 		//model = glm::translate(model, glm::vec3(-20.0f+mainWindow.getmuevex(), 6.0f, -1.0));
